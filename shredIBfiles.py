@@ -23,12 +23,12 @@ CURRENCIES contains all the currencies that you trade.
 TRADES_LOC and POSITIONS_LOC indicate where in the trade and activity report respectively the 
   tables of trades and current positions are held. They shouldn't 
 """
-
+import sys
 ## Start of formatting globals
 
 
-ASSETS=['Stocks', 'Futures', 'Forex']
-CURRENCIES=['GBP', 'JPY' ,'EUR', 'KRW', 'AUD', 'CHF', 'USD']
+ASSETS=['Stocks', 'Futures', 'Forex', 'CFD', 'Equity and Index Options']
+CURRENCIES=['GBP', 'JPY' ,'EUR', 'KRW', 'AUD', 'CHF', 'USD', 'HKD']
 
 TRADES_LOC=1
 POSITIONS_LOC=7
@@ -245,7 +245,7 @@ def _parse_pandas_df(main_table, colref="Acct ID"):
             ## It's an index row, i.e. it contains eithier an asset class or a currency
             ## Return the name of the index (asset class or currency
             indexentry=_get_index_row(row, colref)
-            
+
             if indexentry in assetlongnames:
                 ## It's an asset class. Since these are at a higher level than FX we reset the currency
                 current_header=[shortname for shortname, longname in assetspacked 
@@ -378,23 +378,32 @@ def _from_trades_row_to_trade(row):
     ## Note that taxes and commissions are reported as negative (cashflow) 
     ## Value is negative for buys and positive for sells, which is fine
     ## quantities are already signed
-    
+    check_tax = 0.0
+    try:
+        check_tax = abs(float(row.Tax.replace(',','')))
+    except AttributeError:
+        try:
+            check_tax = abs(float(row.Fee.replace(',','')))
+        except AttributeError:
+            print 'Error caught'
+    ## if check_tax != 0.0:
+    ##     print check_tax
+
     this_trade=Trade(Code=row.Symbol, Currency=row.Currency, Price=float(row.Price.replace(',','')), 
-                     Tax=abs(float(row.Tax.replace(',',''))), 
+                     Tax = check_tax,
                      Commission=abs(float(row.Comm.replace(',',''))),  
-                     Date=_parse_trade_date(row['Trade Date']), SignQuantity=quantity, 
+                     Date=_parse_trade_date(row['Trade Date/Time'].replace('/Time', '')),
+                     SignQuantity=quantity,
                      Quantity=abs(quantity), Value=value, AssetClass=row.AssetClass)
-    
     return this_trade
 
 def _from_pddf_to_trades_object(all_results):
     """
     Converts a pandas data frame to a list of trades
     """
-    
     tlist=TradeList([_from_trades_row_to_trade(all_results.irow(idx)) 
                       for idx in range(len(all_results.index))])
-    
+
     return tlist
 
 

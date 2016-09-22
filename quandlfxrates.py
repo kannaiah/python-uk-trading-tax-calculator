@@ -12,7 +12,7 @@
 
 
 import pandas as pd
-import Quandl
+import quandl as Quandl
 
 authtoken='qWXuZcdwzwQ2GJQ88sNb'
 """

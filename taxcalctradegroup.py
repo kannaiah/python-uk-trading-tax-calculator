@@ -72,7 +72,7 @@ class TaxCalcTradeGroup(object):
         if abs(unmatched)<THRESHOLD:
             ## Just in case pro-rata leaves rounding errors
             return 0.0
-        
+
         return unmatched
     
 
@@ -160,9 +160,8 @@ class TaxCalcTradeGroup(object):
 
 
         ## Cost and proceeds
-        
         ### Calculation depends on type of asset
-        
+       
         if assetclass=="Equity" or assetclass=="Stocks":
             if close_value>0:
                 ## Normal, open with a buy, close with a sell
@@ -172,7 +171,6 @@ class TaxCalcTradeGroup(object):
                 gbp_allowable_costs = abs(open_value_gbp)+ open_tax_gbp + open_comm_gbp
                 gbp_disposal_proceeds = abs(close_value_gbp) - close_tax_gbp - close_comm_gbp
 
-            
             else:
                 ## Selling short
                 disposal_proceeds=abs(open_value) + open_tax + open_comm 
@@ -182,7 +180,7 @@ class TaxCalcTradeGroup(object):
                 gbp_allowable_costs = abs(close_value_gbp) - close_tax_gbp - close_comm_gbp
 
             
-        elif assetclass=="Futures" or assetclass=="Forex":
+        elif assetclass=="Futures" or assetclass=="Forex" or assetclass=="Equity and Index Options" or assetclass == 'CFD':
             ## Futures. Disposal proceeds is local profit converted at closing FX rate
             ## Allowable costs includes only commissions, taxes
             
@@ -197,9 +195,7 @@ class TaxCalcTradeGroup(object):
         
         else:
             raise Exception("Asset class %s not recognised, no idea what to do. Must be Equity, Futures or Forex." % assetclass)
-        
-            
-        
+
         ## Gross and net profits
         net_profit = disposal_proceeds - allowable_costs 
         gbp_net_profit = gbp_disposal_proceeds - gbp_allowable_costs

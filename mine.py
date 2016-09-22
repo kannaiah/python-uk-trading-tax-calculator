@@ -37,19 +37,24 @@ def get_all_trades_and_positions():
     
     Here I'm loading reports from two IB accounts
     """
-    
-    trades1=get_ib_trades("MAINtrades2014to20150205.html")
-    trades2=get_ib_trades("LONGtrades2014to20150205.html")
+    trades1=get_ib_trades("2012.htm")
+    trades2=get_ib_trades("2013.htm")
+    trades3=get_ib_trades("2014.htm")
+    trades4=get_ib_trades("2015.htm")
+    trades5=get_ib_trades("2016.htm")
+    trades6=get_ib_trades("2017.htm")
+
     
     """
     You can also use .csv files to store trades. I'm doing that here to account for positions I 
     transferred to IB
     
     """
-    trades3=read_generic_csv("tradespre2014.csv")
+    #trades3=read_generic_csv("tradespre2014.csv")
     
     ## Doesn't inherit the type
-    all_trades=TradeList(trades1+trades2+trades3)
+    #all_trades=TradeList(trades1+trades2+trades3)
+    all_trades=TradeList(trades1+trades2+trades3+trades4+trades5+trades6)
     
     """
     Get positions, from IB files. 
@@ -59,15 +64,15 @@ def get_all_trades_and_positions():
     To get the file log in to Account manager... Reports.... activity report....
     Save as .html
     """
-    positions1=get_ib_positions('positions1.html')
-    positions2=get_ib_positions('positions2.html')
+    ##positions1=get_ib_positions('2017.htm')
+
     
     """
     You can join together as many of these as you like
     """
-    all_positions=PositionList(positions1+positions2)
+    ##all_positions=PositionList(positions1)
     
-    return (all_trades, all_positions)
+    return (all_trades, None)
 
 if __name__=="__main__":
     
@@ -96,7 +101,7 @@ if __name__=="__main__":
 
     
     taxcalc_dict=calculatetax(all_trades, all_positions, CGTCalc=CGTCalc, reportfile="TaxReport.txt",
-                              reportinglevel="VERBOSE", fxsource="QUANDL") #DATABASE FIXED
+                              reportinglevel="VERBOSE", fxsource="QUANDL") #DATABASE
 
     
     
@@ -104,27 +109,43 @@ if __name__=="__main__":
     ## You can also run this interactively
     ## CGTCalc needs to match, or it wont' make sense
     
+    taxcalc_dict.display_taxes(taxyear=2012, CGTCalc=CGTCalc, reportinglevel="ANNUAL")
+    taxcalc_dict.display_taxes(taxyear=2013, CGTCalc=CGTCalc, reportinglevel="ANNUAL")
+    taxcalc_dict.display_taxes(taxyear=2014, CGTCalc=CGTCalc, reportinglevel="ANNUAL")
     taxcalc_dict.display_taxes(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="ANNUAL")
+    taxcalc_dict.display_taxes(taxyear=2016, CGTCalc=CGTCalc, reportinglevel="ANNUAL")
     
-    ## Display all the trades for one code ('element')
-    taxcalc_dict['FBTP DEC 14'].display_taxes_for_code(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="CALCULATE")
+    ## Display all the trades for one code ('element')SSYSn
+    ##  print 'Trades for SHLD 21JAN12 30.0 P'
+    ## taxcalc_dict['SHLD 21JAN12 30.0 P'].display_taxes_for_code(taxyear=2012, CGTCalc=CGTCalc, reportinglevel="CALCULATE")
+
     
     ## Display a particular trade. The number '3' is as shown the report
-    taxcalc_dict['FBTP DEC 14'].matched[3].group_display_taxes(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="VERBOSE")
+    #taxcalc_dict['FBTP DEC 14'].matched[3].group_display_taxes(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="VERBOSE")
 
     ## Heres a cool trade
     #taxcalc_dict['FGBS DEC 14'].element_display_taxes(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="NORMAL")
-    taxcalc_dict['FGBS DEC 14'].matched[17].group_display_taxes(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="VERBOSE")
+    #taxcalc_dict['FGBS DEC 14'].matched[17].group_display_taxes(taxyear=2015, CGTCalc=CGTCalc, reportinglevel="VERBOSE")
 
 
     ## Bonus feature - analyse profits
-    profits=taxcalc_dict.return_profits(2015, CGTCalc)
+    profits=taxcalc_dict.return_profits(2014, CGTCalc)
     profit_analyser(profits)
 
-    avgcomm=taxcalc_dict.average_commission(2015)
+    avgcomm=taxcalc_dict.average_commission(2014)
+    print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    print 'Codes: '
     codes=avgcomm.keys()
     codes.sort()
+    print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
     for code in codes:
         print "%s %f" % (code, avgcomm[code])
         
-    print np.nanmean(avgcomm.values())
+    print "Avg comm: ", np.nanmean(avgcomm.values())
+    print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    print 'List of unmatched trades'
+    for code in codes:
+        if len(taxcalc_dict[code].unmatched)>0:
+            print code
+            print taxcalc_dict[code]
+    print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
